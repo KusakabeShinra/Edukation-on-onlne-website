@@ -1,4 +1,3 @@
-from sys import prefix
 
 u_input = input('Введите ваш возраст:')
 
