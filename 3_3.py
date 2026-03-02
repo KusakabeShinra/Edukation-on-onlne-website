@@ -1,43 +1,45 @@
-from typing import Union, List
+from typing import Union, List, Any
 
 def function_name(
-        search: str,
-        status: bool,
-        *args: object,
-        **kwargs: object
+    search: str,
+    status: bool,
+    *args: Any,
+    **kwargs: Any
 ) -> Union[List[int], str]:
     """
-    Обрабатывает переданные аргументы в зависимости от параметра search.
+    Функция обрабатывает переданные аргументы в зависимости от параметра search.
+    Функция может работать с позиционными аргументами (*args) или именованными
+    аргументами (**kwargs) и возвращает результат в формате list (список) или str (строка).
 
     Параметры:
     ----------
     search : str
-        Определяет режим обработки:
-        - "args"   — работа с позиционными аргументами (*args)
-        - "kwargs" — работа с именованными аргументами (**kwargs)
+        Может принимать значения:
+        - "args" - работа с позиционными аргументами
+        - "kwargs" - работа с именованными аргументами
 
     status : bool
-        Используется только при search == "args":
-        - True  — вернуть список целых чисел из args
-        - False — вернуть строку, состоящую из конкатенации всех args
+        Работа с позиционными аргументами args:
+        - True - возвращает список целочисленных аргументов из args
+        - False - возвращает строку, объединяющую все аргументы args
 
-    *args : object
-        Произвольное количество позиционных аргументов.
+    *args : Any
+        Произвольное количество позиционных аргументов любого типа
 
-    **kwargs : object
-        Произвольное количество именованных аргументов.
+    **kwargs : Any
+        Произвольное количество именованных аргументов любого типа
 
     Возвращаемое значение:
     -----------------------
     Union[List[int], str]
-        - Если search == "args" и status == True → список целых чисел.
-        - Если search == "args" и status == False → строка из всех args.
-        - Если search == "kwargs" → строка с парами "Key: ..., Value: ...".
+        - При search="args" и status=True: список целых чисел из args
+        - При search="args" и status=False: строка со всеми значениями args
+        - При search="kwargs": строка с перечислением всех ключей и значений kwargs
 
     Исключения:
     -----------
     ValueError
-        Если параметр search имеет недопустимое значение.
+        Если параметр search не равен "args" или "kwargs"
     """
     result: List[int] = []
     result_2: str = ""
@@ -52,11 +54,9 @@ def function_name(
             for i in args:
                 result_2 += f"{i}"
             return result_2
-
     elif search == "kwargs":
         for k, v in kwargs.items():
-            result_2 += "Key: {}, Value: {}; ".format(k, v)
+            result_2 += f"Key: {k}, Value: {v}; "
         return result_2
-
     else:
         raise ValueError("Error for search")
