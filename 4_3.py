@@ -1,26 +1,32 @@
-import os
-def append_and_print_even_lines(text: str, filename: str) -> None:
-    # Проверяем, нужно ли добавлять перевод строки перед текстом
-    need_newline = False
-    if os.path.exists(filename) and os.path.getsize(filename) > 0:
-        need_newline = True
+def append_and_print_even(text, filename):
+    # Проверяем, существует ли файл и есть ли в нём что-то
+    try:
+        # Пытаемся открыть файл для чтения
+        with open(filename, 'r', encoding='utf-8') as f:
+            content = f.read()
+        if content:  # если файл не пустой
+            need_newline = True
+        else:
+            need_newline = False
+    except FileNotFoundError:
+        # файл ещё не существует – значит, он пустой (новый)
+        need_newline = False
 
-    # Добавление текста в файл
+    # Теперь открываем файл для добавления (режим 'a')
     with open(filename, 'a', encoding='utf-8') as f:
         if need_newline:
-            f.write('\n')
-        f.write(text)
+            f.write('\n')      # сначала переводим строку
+        f.write(text)          # потом пишем сам текст
 
-    # Чтение и вывод четных строк
     with open(filename, 'r', encoding='utf-8') as f:
-        lines = f.readlines()
-        # Убираем символы перевода строки для красоты вывода, но можно оставить
+        lines = f.readlines()           # читаем все строки в список
+        # enumerate нумерует строки, начиная с 1 (первая строка – номер 1)
         for i, line in enumerate(lines, start=1):
-            if i % 2 == 0:
+            if i % 2 == 0:               # если номер чётный выводим
                 print(line.rstrip('\n'))
 
-# Пример использования
-if __name__ == "__main__":
-    append_and_print_even_lines("Первая запись", "test.txt")
-    append_and_print_even_lines("Вторая запись", "test.txt")
-    append_and_print_even_lines("Третья запись", "test.txt")
+append_and_print_even("rtx 2050", "example.txt")
+append_and_print_even("rtx 3050", "example.txt")
+append_and_print_even("rxt 4060", "example.txt")
+append_and_print_even("rtx 4090", "example.txt")
+append_and_print_even("rx 6600", "example.txt")
