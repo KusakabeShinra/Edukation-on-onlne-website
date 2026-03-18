@@ -9,7 +9,7 @@ def decorator(func):
     return wrapper
 
 @decorator
-def calculate_area(length: float, width: float) -> float:
+def calculate_area(length, width):
     return length * width
 
 # Пример вызова
