@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Примитивный калькулятор</title> 
+    <style> 
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: rgb(56, 53, 53);
+            margin: 0;
+            padding: 20px;
+        }
+        .calculator {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 350px;
+        }
+        .display {
+            margin-bottom: 20px;
+        }
+        #inputField {
+            width: 100%;
+            height: 60px;
+            font-size: 28px;
+            text-align: right;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-family: monospace;
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            height: 60px;
+            font-size: 24px;
+            border: none;
+            border-radius: 10px;
+            background: #f0f0f0;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover {
+            background: #e0e0e0;
+            transform: scale(1.02);
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        .operator {
+            background: #ff9800;
+            color: white;
+        }
+        .operator:hover {
+            background: #fb8c00;
+        }
+        .equals {
+            background: #4caf50;
+            color: white;
+        }
+        .clear {
+            background: #f44336;
+            color: white;
+        }
+        .history {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+        .history h3 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            color: #333;
+        }
+        .history-item {
+            background: white;
+            padding: 5px 10px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            border-left: 4px solid #4caf50;
+            font-family: monospace;
+        }
+        .clear-history {
+            margin-top: 10px;
+            background: #607d8b;
+            color: white;
+            font-size: 14px;
+            height: 35px;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display">
+            <input type="text" id="inputField" placeholder="0" readonly>
+        </div>
+        <div class="buttons">
+            <button class="digit">7</button>
+            <button class="digit">8</button>
+            <button class="digit">9</button>
+            <button class="operator">/</button>
+            
+            <button class="digit">4</button>
+            <button class="digit">5</button>
+            <button class="digit">6</button>
+            <button class="operator">*</button>
+            
+            <button class="digit">1</button>
+            <button class="digit">2</button>
+            <button class="digit">3</button>
+            <button class="operator">-</button>
+            
+            <button class="digit">0</button>
+            <button class="digit">.</button>
+            <button class="clear">C</button>
+            <button class="operator">+</button>
+            
+            <button class="equals" style="grid-column: span 4;">=</button>
+        </div>
+        <div class="history">
+            <h3>История действий</h3>
+            <div id="historyBlock"></div>
+        </div>
+    </div>
+    <script>
+        // Получаем элементы DOM
+        const inputField = document.getElementById('inputField');
+        const historyBlock = document.getElementById('historyBlock');
+        
+        // Функция добавления записи в историю (вынесена отдельно)
+        function addToHistory(expression, result) {
+            // Создаём новый элемент div для истории
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            historyItem.textContent = `${expression} = ${result}`;
+            
+            // Добавляем в блок истории с помощью метода append
+            historyBlock.append(historyItem);
+            
+            // Автопрокрутка вниз, чтобы видеть последнюю запись
+            historyBlock.parentElement.scrollTop = historyBlock.parentElement.scrollHeight;
+        }
+        
+        // Функция вычисления выражения
+        function calculateExpression(expression) {
+            try {
+                // Убираем все пробелы
+                let expr = expression.trim();
+                if (expr === '') throw new Error('Пустое выражение');
+                const result = Function('"use strict"; return (' + expr + ')')();
+                // Проверка на бесконечность или NaN
+                if (!isFinite(result)) {
+                    throw new Error('Деление на ноль или нечисловой результат');
+                }
+                // Округляем до 10 знаков, чтобы не было длинной дроби
+                return Math.round(result * 1e10) / 1e10;
+            } catch (error) {
+                console.error('Ошибка вычисления:', error);
+                return 'Ошибка';
+            }
+        }
+        
+        // Добавляем символы в поле ввода
+        function appendToInput(value) {
+            let current = inputField.value;
+            if (current === 'Ошибка') {
+                inputField.value = value;
+            } else {
+                inputField.value += value;
+            }
+        }
+        
+        // Очистка поля ввода
+        function clearInput() {
+            inputField.value = '';
+        }
+        
+        // Обработчик нажатия на кнопку "="
+        function handleEquals() {
+            let expression = inputField.value;
+            if (expression.trim() === '') return;
+            
+            let result = calculateExpression(expression);
+            // Если результат - число или строка, добавляем в историю
+            addToHistory(expression, result);
+            // Показываем результат в поле ввода (удобно для продолжения вычислений)
+            inputField.value = result;
+        }
+        
+        // Навешиваем обработчики на все кнопки
+        // Цифры и точка (класс .digit)
+        const digitButtons = document.querySelectorAll('.digit');
+        digitButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                appendToInput(btn.textContent);
+            });
+        });
+        
+        // Операторы (+, -, *, /) - класс .operator
+        const operatorButtons = document.querySelectorAll('.operator');
+        operatorButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                appendToInput(btn.textContent);
+            });
+        });
+        
+        // Кнопка очистки поля C
+        const clearBtn = document.querySelector('.clear');
+        clearBtn.addEventListener('click', () => {
+            clearInput();
+        });
+        
+        // Кнопка равно
+        const equalsBtn = document.querySelector('.equals');
+        equalsBtn.addEventListener('click', () => {
+            handleEquals();
+        });
+        
+        
+        // Дополнительно, поддержка клавиатуры что бы было удобно пользоваться с набирать с клавиатуры 
+        document.addEventListener('keydown', (event) => {
+            const key = event.key;
+            if (!isNaN(key) || key === '.') {
+                // цифры и точка
+                appendToInput(key);
+            } else if (key === '+' || key === '-' || key === '*' || key === '/') {
+                appendToInput(key);
+            } else if (key === 'Enter' || key === '=') {
+                event.preventDefault();
+                handleEquals();
+            } else if (key === 'Escape' || key === 'c' || key === 'C') {
+                clearInput();
+            } else if (key === 'Delete' && event.ctrlKey) {
+                historyBlock.innerHTML = '';
+            }
+        });
+        inputField.removeAttribute('readonly');
+        
+        console.log('Калькулятор загружен. Можно пользоваться!');
+    </script>
+</body>
+</html>
